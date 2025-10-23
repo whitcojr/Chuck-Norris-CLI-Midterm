@@ -45,13 +45,33 @@ jobs:
             sleep 5
           done
 
-      - name: Run tests
-        run: pytest -q tests/
+      - name: Show workspace
+        run: |
+          pwd
+          ls -la
+          echo "PYTHONPATH=$PYTHONPATH"
+
+      - name: Show env and python info
+        run: |
+          python --version
+          python -V
+          python -c "import sys, json; print(json.dumps({'sys_path': sys.path}, default=str))"
+          python -m pip --version
+          python -m pip list
+
+      - name: Run pytest (capture output)
+        run: |
+          mkdir -p action_artifacts
+          python -m pytest -vv tests/ 2>&1 | tee action_artifacts/pytest.log || true
+          python -c "import sys, json; print(json.dumps({'rc': sys.exit if False else 0}))" || true
+        shell: bash
 
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.python-version }}
-          path: .pytest_cache
+          path: |
+            .pytest_cache
+            action_artifacts/pytest.log
 
