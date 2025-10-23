@@ -1,4 +1,3 @@
-name: Tests
 name: Python tests
 
 on:
