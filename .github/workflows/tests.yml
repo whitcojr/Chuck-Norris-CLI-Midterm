@@ -24,7 +24,17 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+          # retry loop to mitigate transient network failures
+          for i in 1 2 3; do python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt && break || sleep 5; done
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
 
       - name: Debug: Python and pip info
         run: |
